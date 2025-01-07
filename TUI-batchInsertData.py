@@ -2,6 +2,9 @@ import sys
 import pymongo
 import urllib.parse
 import copy
+import time
+
+from pymongo import UpdateOne
 
 '''
 标题: vwa 全量车导出工程的性能测试，用于灌入大量测试数据
@@ -23,12 +26,25 @@ import copy
     2. delete {"otherFields.modelName":"RCH_全量车测试数据"}
  
 '''
+#3.4
+# mongodbInfo = {
+#     "pwd": "yxmAZCcmLPgxoIhv@Nn1",
+#     "user": "rwuser",
+#     "hosts": "10.19.12.44:8635,10.19.12.181:8635@Nn1",
+# }
 
-password = urllib.parse.quote_plus('yxmAZCcmLPgxoIhv@Nn1')
+#5.0
+mongodbInfo = {
+    "pwd": "BrPfvKGR4qrv1J3R@Nn1",
+    "user": "rtmuser",
+    "hosts": "10.19.12.81:8635,10.19.12.248:8635",
+}
+
+password = urllib.parse.quote_plus(mongodbInfo["pwd"])
 
 batchStoreObj = []
-client = pymongo.MongoClient('mongodb://rwuser:%s@10.19.12.44:8635,'
-                             '10.19.12.181:8635/locationtest?replicaSet=replica' % password,
+client = pymongo.MongoClient('mongodb://%s:%s@%s/locationtest?replicaSet=replica'
+                             % (mongodbInfo['user'], password, mongodbInfo['hosts']),
                              tls=True,
                              tlsCAFile='/home/ubuntu/renchenhao/pymongo/ca_mongo.crt',
                              authSource='admin',
@@ -49,14 +65,31 @@ def insertData():
         data['vin'] = truncated_vin + str(i).zfill(8)
         dataClone = copy.deepcopy(data)
         batchStoreObj.append(dataClone)
-        if len(batchStoreObj)%1000 == 0:
+        if len(batchStoreObj) % 1000 == 0:
             # print("before insert_many batchStoreObj:" + str(batchStoreObj))
             collection.insert_many(batchStoreObj)
             # print("after insert_many batchStoreObj:" + str(batchStoreObj))
             batchStoreObj.clear()
-            print("已插入文档数：" + str(i+1 - int(sys.argv[1])))
+            print("已插入文档数：" + str(i + 1 - int(sys.argv[1])))
 
     print("测试数据灌入成功，共：" + str(count) + "条！")
+
+
+# 通过time 升序排序，每次取时间最靠后的300个数据，更新为当前时间
+def simulatedDynamicMessage():
+    print("动态数据更新time开始执行...")
+    while True:
+        time_stamp = time.time()  # 时间戳获取
+        # print(int(round(time_stamp * 1000)))  # 毫秒级时间戳
+        milliseconds = int(round(time_stamp * 1000))  # 毫秒级时间戳
+        result = collection.find().sort("time", 1).limit(300)
+        bulk_operations = []
+        for res in result:
+            bulk_operations.append(UpdateOne({'_id': res["_id"]}, {'$set': {'time': milliseconds}}))
+        if bulk_operations:
+            result = collection.bulk_write(bulk_operations)
+            print(".")
+        time.sleep(1)
 
 
 def insertOrDel():
@@ -64,6 +97,8 @@ def insertOrDel():
         data = collection.delete_many({"otherFields.modelName": "RCH_全量车测试数据"})
         print(data.deleted_count, "个文档已删除!")
         print("测试数据清理完成！")
+    elif sys.argv[1] == 'dm':
+        simulatedDynamicMessage()
     elif len(sys.argv) == 3:
         insertData()
     else:
