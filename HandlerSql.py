@@ -3,10 +3,7 @@ from datetime import datetime
 import re
 
 # 处理 info文件
-# (`id`,`createTime`,`updateTime`,`deviceID`,`deviceType`,`vin`,`sourceType`,`tenant`,`status`,`errorCode`,`errorMsg`,`extErrorMsg`,`sn`,`imei`)
-# deviceID、imei、sn、vin、status
-# `vehicle_lastly_register_info`(`id`,`vin`,`createTime`,`updateTime`,`deviceID`,`deviceType`,`sourceType`,`tenant`,`status`,`errorCode`,`errorMsg`,`extErrorMsg`,`imei`,`sn`) values
-# `vehicle_register_info`(`id`,`createTime`,`updateTime`,`deviceID`,`deviceType`,`vin`,`sourceType`,`tenant`,`status`,`errorCode`,`errorMsg`,`extErrorMsg`,`sn`,`imei`) values
+# 因为4.8.0上线，需要把注册记录表vehicle_register_info中的4000w+同步到vehicle_lastly_register_info表
 
 # lastly_info_map
 lastly_info = {}
