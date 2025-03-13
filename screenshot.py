@@ -1,13 +1,12 @@
 import mss
-import ImageOCR
+import elapsedTime
 
 
-
-@ImageOCR.timer
+@elapsedTime.timer
 def screenshot():
     with mss.mss() as sct:
         screenshot = sct.shot(output="screenshot.png")  # 直接保存
 
 
-
-screenshot()
+if __name__ == '__main__':
+    screenshot()

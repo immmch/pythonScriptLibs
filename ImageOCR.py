@@ -2,21 +2,10 @@ import cv2
 import pytesseract
 import numpy as np
 from matplotlib import pyplot as plt
-import time
+import elapsedTime
 
 
-# 定义装饰器
-def timer(func):
-    def wrapper():
-        start = time.time()
-        func()
-        end = time.time()
-        print(f"执行时间: {end - start:.4f} 秒")
-
-    return wrapper
-
-
-@timer
+@elapsedTime.timer
 def OCR():
     # 说明：定位用户输入的字符在图片中的位置
     # cv2 需要执行：pip install opencv-python 来安装
@@ -64,3 +53,6 @@ def OCR():
 
     # 输出找到的坐标位置
     print(positions)
+
+if  __name__ == '__main__':
+    OCR()
